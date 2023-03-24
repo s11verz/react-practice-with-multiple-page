@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ErrorPage from "./pages/Error";
 import EventDetailPage, {
@@ -6,12 +7,15 @@ import EventDetailPage, {
 } from "./pages/EventDetail";
 import EventCreatePage from "./pages/EventCreate";
 import EventEditPage from "./pages/EventEdit";
-import EventsPage, { loader as eventsLoader } from "./pages/Events";
+// import EventsPage, { loader as eventsLoader } from "./pages/Events";
+
 import HomePage from "./pages/Home";
 import RootLayout from "./pages/Roots";
 import EventRootLayout from "./pages/EventRoot";
 import { action as manipulateEventAction } from "./components/EventForm";
-import NewsletterPage, { action as newsletterAction } from './pages/Newsletter';
+import NewsletterPage, { action as newsletterAction } from "./pages/Newsletter";
+
+const EventsPage = lazy(() => import("./pages/Events"));
 
 const router = createBrowserRouter([
   {
@@ -24,7 +28,16 @@ const router = createBrowserRouter([
         path: "events",
         element: <EventRootLayout />,
         children: [
-          { index: true, element: <EventsPage />, loader: eventsLoader },
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<p>Loading...</p>}>
+                <EventsPage />
+              </Suspense>
+            ),
+            loader: () =>
+              import("./pages/Events").then((module) => module.loader()),
+          },
           {
             path: ":eventId",
             id: "event-detail",
@@ -51,7 +64,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: 'newsletter',
+        path: "newsletter",
         element: <NewsletterPage />,
         action: newsletterAction,
       },
